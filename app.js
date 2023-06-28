@@ -2,7 +2,7 @@ const express = require("express");
 const collection = require("./mongo");
 const cors = require("cors");
 const bcrypt = require("bcrypt");
-const userCollection = require("./mongo");
+const { userCollection, orderCollection } = require('./mongo');
 const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -63,7 +63,7 @@ app.post("/signup", async (req, res) => {
       };
 
       res.json({ status: true });
-      await collection.insertMany([userData]);
+      await userCollection.insertMany([userData]);
     }
   } catch (e) {
     res.json("There is some error");
