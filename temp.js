@@ -4,21 +4,21 @@ import Table from './Table';
 import axios from 'axios';
 
 export default function Orders(props) {
-  // const [data, setData] = useState([]);
+  const [data, setData] = useState([]);
   const [pendingOrders, setPendingOrders] = useState([]);
   const [completedOrders, setCompletedOrders] = useState([]);
   const [addingOrder, setAddingOrder] = useState(false);
-  const tableHeadings = ["ID", "Type", "Quantity"];
+
 
   useEffect(() => {
-    fetchData();
+    fetchOrders();
   }, []);
 
-  const fetchData = async () => {
+  const fetchOrders = async () => {
     try {
       const response = await axios.get('http://localhost:5000/orders');
       const orders = response.data;
-      // setData(orders);
+      setData(orders);
       setPendingOrders(orders.filter((order) => order.state === 'pending'));
       setCompletedOrders(orders.filter((order) => order.state === 'completed'));
     } catch (error) {
@@ -26,66 +26,59 @@ export default function Orders(props) {
     }
   };
 
-  const addNewOrder = async () => {
-    const newOrderId = document.getElementById('newOrderId').value;
-    const newOrderType = document.getElementById('newOrderType').value;
-    const newOrderQuantity = document.getElementById('newOrderQuantity').value;
-    const newOrderState = document.getElementById('newOrderState').value;
-
-    if (!newOrderId || !newOrderType || !newOrderQuantity || !newOrderState) {
-      alert('All fields are mandatory to fill');
-      return;
-    }
-
-    try {
-      const response = await axios.post('http://localhost:5000/addorder', {
-        id: newOrderId,
-        type: newOrderType,
-        quantity: newOrderQuantity,
-        state: newOrderState,
-      });
-
-      if (response.data.status) {
-        fetchData();
-        toggleNewOrder();
-      }
-    } catch (error) {
-      if (error.response && error.response.data.error) {
-        // Display an alert if duplicate id error
-        alert(error.response.data.error);
-      } else {
-        console.log('Error adding new order:', error);
-      }
-    }
-  };
-
-
+  const tableHeadings = ['ID', 'Type', 'Quantity'];
 
   const toggleNewOrder = () => {
-    const element = document.getElementById('addOrderContainer');
+    var element = document.getElementById("addOrderContainer");
     if (!addingOrder) {
       setAddingOrder(true);
-      element.classList.remove('d-none');
-    } else {
+      element.classList.remove("d-none");
+    }
+    else {
       setAddingOrder(false);
-      element.classList.add('d-none');
+      element.classList.add("d-none");
+
+    }
+  }
+
+  const addNewOrder = async (id, type, quantity, state) => {
+    try {
+      await axios.post('http://localhost:5000/orders', {
+        id: id,
+        type: type,
+        quantity: quantity,
+        state: state,
+      });
+      fetchOrders();
+    } catch (error) {
+      console.log('Error adding new order:', error);
+    }
+    toggleNewOrder();
+  };
+
+  const editOrder = async (order) => {
+    try {
+      await axios.put(`http://localhost:5000/orders/${order._id}`, order);
+      fetchOrders();
+    } catch (error) {
+      console.log('Error editing order:', error);
     }
   };
 
   const deleteOrder = async (orderId) => {
     try {
-      const response = await axios.delete(`http://localhost:5000/orders/delete/${orderId}`);
-      console.log(response); // Log the response to the console for debugging
-      fetchData();
+      await axios.delete(`http://localhost:5000/orders/${orderId}`);
+      fetchOrders();
     } catch (error) {
       console.log('Error deleting order:', error);
     }
   };
-  
-  const markAsCompleted = async (orderId) => {
+
+  const markAsCompleted = async (order) => {
     try {
-      await axios.put(`http://localhost:5000/orders/convert/${orderId}`);
-      fetchData();
+      await axios.post('http://localhost:5000/orders/completed', order);
+      await axios.delete(`http://localhost:5000/orders/${order._id}`);
+      fetchOrders();
     } catch (error) {
       console.log('Error marking order as completed:', error);
     }
@@ -104,11 +97,11 @@ export default function Orders(props) {
         <div className="orders-container py-5 d-flex justify-content-center my-1" style={{ margin: '2rem', border: '2px solid black' }}>
           <div className="pending-orders mx-5 d-flex flex-column align-items-center" style={{ width: '40vw' }}>
             <h2 className="my-4">Pending Orders</h2>
-            <Table headings={tableHeadings} data={pendingOrders} onDelete={deleteOrder} onMarkAsCompleted={markAsCompleted} orderType="Pending" />
+            <Table headings={tableHeadings} data={pendingOrders} onEdit={editOrder} onDelete={deleteOrder} onMarkAsCompleted={markAsCompleted} orderType="Pending" />
           </div>
           <div className="completed-orders mx-5 d-flex flex-column align-items-center" style={{ width: '40vw' }}>
             <h2 className="my-4">Completed Orders</h2>
-            <Table headings={tableHeadings} data={completedOrders} onDelete={deleteOrder} orderType="Completed" />
+            <Table headings={tableHeadings} data={completedOrders} onEdit={editOrder} onDelete={deleteOrder} orderType="Completed" />
           </div>
         </div>
       </div>
@@ -120,12 +113,11 @@ export default function Orders(props) {
         <h1 className='my-5'>ADD NEW ORDER</h1>
         <div className='my-1' style={{ width: '22rem' }}>
           <span className='mx-3' style={{ width: '5rem' }}>Enter Order ID</span>
-          <input type='number' style={{ width: '12rem', float: 'right' }} id='newOrderId' />
+          <input type='number' style={{ width: '12rem', float: 'right' }} id='newOrderId'/>
         </div>
         <div className='my-1' style={{ width: '22rem' }}>
           <span className='mx-3' style={{ width: '5rem' }}>Product type</span>
           <select style={{ width: '12rem', float: 'right' }} id='newOrderType'>
-          <option value={''}>Order Type</option>
             <option value={'OPC'}>OPC</option>
             <option value={'PPC'}>PPC</option>
             <option value={'RAPID'}>RAPID</option>
@@ -133,12 +125,11 @@ export default function Orders(props) {
         </div>
         <div className='my-1' style={{ width: '22rem' }}>
           <span className='mx-3' style={{ width: '5rem' }}>Enter Quantity</span>
-          <input type='number' style={{ width: '12rem', float: 'right' }} id='newOrderQuantity' />
+          <input type='number' style={{ width: '12rem', float: 'right' }} id='newOrderQuantity'/>
         </div>
         <div className='my-1' style={{ width: '22rem' }}>
           <span className='mx-3' style={{ width: '5rem' }}>State of order</span>
           <select style={{ width: '12rem', float: 'right' }} id='newOrderState'>
-            <option value={''}>Choose Order </option>
             <option value={'pending'}>Pending</option>
             <option value={'completed'}>Completed</option>
           </select>
@@ -146,5 +137,5 @@ export default function Orders(props) {
         <button className="btn btn-primary m-5" onClick={addNewOrder}>Add new order</button>
       </div>
     </>
-  )
+  );
 }

@@ -29,7 +29,8 @@ const userSchema = new mongoose.Schema({
 const orderSchema = new mongoose.Schema({
     id:{
         type: Number,
-        required: true
+        required: true,
+        unique: true
     },
     type:{
         type:String,

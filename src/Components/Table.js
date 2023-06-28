@@ -3,35 +3,34 @@ import './Table.css'
 
 export default function Table(props) {
 
-
-
     return (
         <>
             <div className="container" >
-                <div className="row" > 
-                    <div className="col-md-offset-1 col-md-10" style={{width: 'fit-content', margin: 'auto'}}>
+                <div className="row" >
+                    <div className="col-md-offset-1 col-md-10" style={{ width: 'fit-content', margin: 'auto' }}>
                         <div className="panel">
                             <div className="panel-heading">
                                 <div className="row">
                                     <div className="col col-sm-3 col-xs-12">
                                         <h4 className="title">
-                                            Data <span>List</span>
+                                            {props.orderType} <span>Orders</span>
                                         </h4>
                                     </div>
                                     <div className="col-sm-9 col-xs-12 text-right">
                                         <div className="btn_group">
                                             <input
                                                 type="text"
-                                                className="form-control"
+                                                className="form-control mx-2"
                                                 placeholder="Search"
+                                                style={{ width: '50%' }}
                                             />
-                                            <button className="btn btn-default" title="Reload">
+                                            <button className="btn btn-default mx-2" title="Reload">
                                                 <i className="fa fa-sync-alt" />
                                             </button>
-                                            <button className="btn btn-default" title="Pdf">
+                                            <button className="btn btn-default mx-2" title="Pdf">
                                                 <i className="fa fa-file-pdf" />
                                             </button>
-                                            <button className="btn btn-default" title="Excel">
+                                            <button className="btn btn-default mx-2" title="Excel">
                                                 <i className="fas fa-file-excel" />
                                             </button>
                                         </div>
@@ -43,34 +42,37 @@ export default function Table(props) {
                                     <thead>
                                         <tr>
                                             <th>#</th>
-                                            {props.headings.map((element,index) => <th key={index}>{element}</th>)}
+                                            {props.headings.map((element, index) => <th key={index}>{element}</th>)}
                                             <th>Actions</th>
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        {props.data.map((element,index) => {
+                                        {props.data.map((element, index) => {
                                             return (
-                                                <tr key = {index}>
-                                                    <td>{index+1}</td>
+                                                <tr key={index}>
+                                                    <td>{index + 1}</td>
                                                     <td>{element.id}</td>
                                                     <td>{element.type}</td>
                                                     <td>{element.quantity}</td>
                                                     <td>
                                                         <ul className="action-list">
                                                             <li>
-                                                                <div style={{cursor: 'pointer'}} title="edit">
-                                                                    <i className="fa fa-edit" />
+                                                                <div style={{ cursor: 'pointer' }} title="edit">
+                                                                    <i className="fa fa-edit mx-2"  />
                                                                 </div>
                                                             </li>
                                                             <li>
-                                                                <div style={{cursor: 'pointer'}} title="delete">
-                                                                    <i className="fa fa-trash" />
+                                                                <div style={{ cursor: 'pointer' }} title="delete">
+                                                                    <i className="fa fa-trash mx-2" onClick={()=>{props.onDelete(element.id)}}/>
                                                                 </div>
                                                             </li>
-                                                            <li>
-                                                                <div style={{cursor: 'pointer'}} title="delete">
-                                                                    <i className="fa fa-check" />
+                                                            <li>{props.orderType === 'Pending' ?
+                                                                <div style={{ cursor: 'pointer' }} title="delete">
+                                                                    <i className="fa fa-check mx-2" onClick={()=>{props.onMarkAsCompleted(element.id)}}/>
                                                                 </div>
+                                                                :
+                                                                <></>
+                                                            }
                                                             </li>
                                                         </ul>
                                                     </td>
