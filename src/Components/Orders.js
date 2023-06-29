@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import Navbar from './Navbar';
-import Table from './Table';
+import Table from './OrderTable';
 import axios from 'axios';
 
 export default function Orders(props) {
@@ -93,7 +93,7 @@ export default function Orders(props) {
 
   return (
     <>
-      <div>
+      <div style={addingOrder? {opacity: '0.5'}: {}}>
         <Navbar name={props.name} />
         <h1 style={{ textAlign: 'center' }}>ORDERS</h1>
         <div className="d-flex justify-content-end">
@@ -112,6 +112,8 @@ export default function Orders(props) {
           </div>
         </div>
       </div>
+
+
       {/* the below container will only be displayed when user wants to add new order. Logic are on function addNewOrder & toggleNewOrder */}
       <div className="addOrder d-flex d-none flex-column align-items-center" id='addOrderContainer'>
         <div className="d-flex justify-content-end fa-xl" style={{ cursor: 'pointer', width: '100%' }}>

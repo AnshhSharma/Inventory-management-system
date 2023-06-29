@@ -67,7 +67,7 @@ export default function Table(props) {
                                                                 </div>
                                                             </li>
                                                             <li>{props.orderType === 'Pending' ?
-                                                                <div style={{ cursor: 'pointer' }} title="delete">
+                                                                <div style={{ cursor: 'pointer' }} title="Mark As Complete  ">
                                                                     <i className="fa fa-check mx-2" onClick={()=>{props.onMarkAsCompleted(element.id)}}/>
                                                                 </div>
                                                                 :

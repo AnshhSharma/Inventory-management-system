@@ -7,9 +7,7 @@ export default function Navbar(props) {
         try {
             await axios.post('http://localhost:5000/logout')
                 .then(res => {
-                    if (res.data.status) {
-                        history("/");
-                    }
+                    history("/");
                 })
         }
         catch (error) {

@@ -2,7 +2,7 @@ const express = require('express');
 const collection = require('./mongo');
 const cors = require('cors');
 const bcrypt = require('bcrypt');
-const { userCollection, orderCollection } = require('./mongo');
+const { userCollection, orderCollection, stockCollection } = require('./mongo');
 const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -42,6 +42,11 @@ app.post('/', async (req, res) => {
   } catch (e) {
     res.json('There is some error');
   }
+});
+
+// Logout route
+app.post('/logout', (req, res) => {
+  res.json({status:true})
 });
 
 // Inserting user data to the database from the signup page
@@ -148,6 +153,78 @@ app.delete('/orders/delete/:id', async (req, res) => {
     res.json('There is some error');
   }
 });
+
+
+// Add Stock
+app.post('/addstock', async (req, res) => {
+  const { id, type, quantity, price } = req.body;
+
+  try {
+    const stockData = {
+      id: id,
+      type: type,
+      quantity: quantity,
+      price: price
+    };
+
+    const existingStockId = await stockCollection.findOne({ id: id });
+
+    if (existingStockId) {
+      // If Stock Log with the same id already exists, send a 400 error response
+      res.status(400).json({ error: 'Stock Log with the same id already exists' });
+    } else {
+      await stockCollection.insertMany([stockData]);
+      res.json({ status: true });
+    }
+  } catch (e) {
+    res.json('There is some error');
+  }
+});
+
+// Delete a stock log
+app.delete('/stock/delete/:id', async (req, res) => {
+  const id = req.params.id;
+
+  try {
+    const stockLog = await stockCollection.findOne({ id: id });
+
+    if (stockLog) {
+      await stockCollection.deleteOne({ id: id });
+      res.json({ status: true });
+    } else {
+      res.json({ status: false });
+    }
+  } catch (e) {
+    res.json('There is some error');
+  }
+});
+
+// Calculate stock summary
+app.get('/stock/summary', async (req, res) => {
+  try {
+    const stockSummary = await stockCollection.aggregate([
+      { $group: { _id: '$type', totalQuantity: { $sum: '$quantity' }, totalPrice: { $sum: { $multiply: ['$quantity', '$price'] } } } }
+    ]);
+    res.json(stockSummary);
+  } catch (e) {
+    res.json('There is some error');
+  }
+});
+
+// Fetch stock data
+app.get('/stock', async (req, res) => {
+  try {
+    // Query the "stocks" collection to fetch all stock data
+    const stockData = await stockCollection.find();
+    res.json(stockData);
+  } catch (e) {
+    res.json('There is some error');
+  }
+});
+
+
+
+
 
 app.listen(5000, () => {
   console.log('Server running on port 5000');
