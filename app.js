@@ -142,10 +142,10 @@ app.put('/orders/convert/:id', async (req, res) => {
     const order = await orderCollection.findOne({ id: id });
     if (order) {
       // checking the available quantity for that stock in our inventory
-      const availableStock = await stockSummaryCollection.find({type: order.type});
+      const availableStock = await stockSummaryCollection.find({ type: order.type });
       console.log(availableStock);
       // if enough stock is available
-      if (availableStock && order.quantity <= availableStock.quantity) {
+      if (availableStock && order.quantity <= availableStock[0].quantity) {
         const updatedOrder = {
           id: order.id,
           type: order.type,
@@ -172,6 +172,35 @@ app.put('/orders/convert/:id', async (req, res) => {
     res.json('There is some error');
   }
 });
+
+
+// Marking order as pending
+app.put('/orders/convert-to-pending/:id', async (req, res) => {
+  const id = req.params.id;
+  try {
+
+    // finding if order with that id exists
+    const order = await orderCollection.findOne({ id: id });
+    if (order) {
+      const updatedOrder = {
+        id: order.id,
+        type: order.type,
+        quantity: order.quantity,
+        state: 'pending'
+      }
+      await orderCollection.deleteOne({ id: id });
+      await orderCollection.insertMany([updatedOrder]);
+      await stockCollection.deleteOne({ id: id });
+      res.json({ status: true });
+    } else {
+      res.status(400).json({ error: 'Some Error' });
+    }
+  }
+  catch (e) {
+    res.json('There is some error');
+  }
+});
+
 
 // Delete an order
 app.delete('/orders/delete/:id', async (req, res) => {
@@ -234,8 +263,22 @@ app.delete('/stock/delete/:id', async (req, res) => {
     const stockLog = await stockCollection.findOne({ id: id });
 
     if (stockLog) {
-      await stockCollection.deleteOne({ id: id });
-      res.json({ status: true });
+      if (stockLog.quantity < 0) {
+        const updatedOrder = {
+          id: stockLog.id,
+          type: stockLog.type,
+          quantity: -1*stockLog.quantity,
+          state: 'pending'
+        }
+        await orderCollection.deleteOne({ id: id });
+        await orderCollection.insertMany([updatedOrder]);
+        await stockCollection.deleteOne({ id: id });
+        res.json({ status: true });
+      }
+      else {
+        await stockCollection.deleteOne({ id: id });
+        res.json({ status: true });
+      }
     } else {
       res.json({ status: false });
     }

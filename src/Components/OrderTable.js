@@ -71,7 +71,10 @@ export default function Table(props) {
                                                                     <i className="fa fa-check mx-2" onClick={()=>{props.onMarkAsCompleted(element.id)}}/>
                                                                 </div>
                                                                 :
-                                                                <></>
+                                                                <div style={{ cursor: 'pointer' }} title="Mark As Pending">
+                                                                    <i className="fa-sharp fa-solid fa-xmark" onClick={()=>{props.onMarkAsPending(element.id)}}/>
+                                                                </div>
+                                                                
                                                             }
                                                             </li>
                                                         </ul>

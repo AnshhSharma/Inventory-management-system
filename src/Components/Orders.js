@@ -96,6 +96,15 @@ export default function Orders(props) {
     }
   };
 
+  const markAsPending = async (orderId) =>{
+    try{
+      await axios.put(`http://localhost:5000/orders/convert-to-pending/${orderId}`);
+      fetchData();
+    } catch(error){
+      console.log('error marking order as pending: ',error);
+    }
+  }
+
   return (
     <>
       <div style={addingOrder? {opacity: '0.5'}: {}}>
@@ -113,7 +122,7 @@ export default function Orders(props) {
           </div>
           <div className="completed-orders mx-5 d-flex flex-column align-items-center" style={{ width: '40vw' }}>
             <h2 className="my-4">Completed Orders</h2>
-            <Table headings={tableHeadings} data={completedOrders} onDelete={deleteOrder} orderType="Completed" />
+            <Table headings={tableHeadings} data={completedOrders} onDelete={deleteOrder} orderType="Completed" onMarkAsPending = {markAsPending}/>
           </div>
         </div>
       </div>
