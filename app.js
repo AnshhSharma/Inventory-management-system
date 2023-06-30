@@ -2,11 +2,22 @@ const express = require('express');
 const collection = require('./mongo');
 const cors = require('cors');
 const bcrypt = require('bcrypt');
-const { userCollection, orderCollection, stockCollection } = require('./mongo');
+const { userCollection, orderCollection, stockCollection, stockSummaryCollection } = require('./mongo');
 const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cors());
+
+const STOCK_TYPE_PRICE = [{ type: 'OPC', price: 1500 }, { type: 'PPC', price: 2500 }, { type: 'RAPID', price: 5000 }];
+const getPriceByType = (type) => {
+  const foundStock = STOCK_TYPE_PRICE.find(stock => stock.type === type);
+  if (foundStock) {
+    return foundStock.price;
+  } else {
+    return null; // or any other default value if type is not found
+  }
+};
+
 
 app.get('/', cors(), (req, res) => {
   // Handle GET request
@@ -46,7 +57,7 @@ app.post('/', async (req, res) => {
 
 // Logout route
 app.post('/logout', (req, res) => {
-  res.json({status:true})
+  res.json({ status: true })
 });
 
 // Inserting user data to the database from the signup page
@@ -97,12 +108,22 @@ app.post('/addorder', async (req, res) => {
       state: state
     };
 
-    const existingOrder = await orderCollection.findOne({ id: id });
+    const existingOrder = await (orderCollection.findOne({ id: id }) && stockCollection.findOne({ id: id }));
 
     if (existingOrder) {
       // If order with the same id already exists, send a 400 error response
-      res.status(400).json({ error: 'Order with the same id already exists' });
-    } else {
+      res.status(400).json({ error: 'Order or Stock with the same id already exists' });
+    }
+    else {
+      if (state === 'completed') {
+        const logOrder = {
+          id: id,
+          type: type,
+          quantity: quantity * -1,
+          price: -1 * order.quantity * getPriceByType(order.type)
+        }
+        await stockCollection.insertMany([logOrder]);
+      }
       await orderCollection.insertMany([orderData]);
       res.json({ status: true });
     }
@@ -116,22 +137,38 @@ app.post('/addorder', async (req, res) => {
 app.put('/orders/convert/:id', async (req, res) => {
   const id = req.params.id;
   try {
-    const order = await orderCollection.findOne({ id: id });
 
+    // finding if order with that id exists
+    const order = await orderCollection.findOne({ id: id });
     if (order) {
-      const updatedOrder = {
-        id: order.id,
-        type: order.type,
-        quantity: order.quantity,
-        state: 'completed'
+      // checking the available quantity for that stock in our inventory
+      const availableStock = await stockSummaryCollection.find({type: order.type});
+      console.log(availableStock);
+      // if enough stock is available
+      if (availableStock && order.quantity <= availableStock.quantity) {
+        const updatedOrder = {
+          id: order.id,
+          type: order.type,
+          quantity: order.quantity,
+          state: 'completed'
+        }
+        const logOrder = {
+          id: order.id,
+          type: order.type,
+          quantity: order.quantity * -1,
+          price: -1 * order.quantity * getPriceByType(order.type)
+        }
+        await orderCollection.deleteOne({ id: id });
+        await orderCollection.insertMany([updatedOrder]);
+        await stockCollection.insertMany([logOrder]);
+        res.json({ status: true });
+      } else {
+        res.status(400).json({ error: 'Not enough stock in inventory' });
+
       }
-      await orderCollection.deleteOne({ id: id });
-      await orderCollection.insertMany([updatedOrder]);
-      res.json({ status: true });
-    } else {
-      res.json({ status: false });
     }
-  } catch (e) {
+  }
+  catch (e) {
     res.json('There is some error');
   }
 });
@@ -145,6 +182,14 @@ app.delete('/orders/delete/:id', async (req, res) => {
 
     if (order) {
       await orderCollection.deleteOne({ id: id });
+      if (order.state === 'completed') {
+        const stockLog = await stockCollection.findOne({ id: id });
+        if (stockLog) {
+          await stockCollection.deleteOne({ id: id });
+
+        }
+
+      }
       res.json({ status: true });
     } else {
       res.json({ status: false });
@@ -167,11 +212,11 @@ app.post('/addstock', async (req, res) => {
       price: price
     };
 
-    const existingStockId = await stockCollection.findOne({ id: id });
+    const existingStockId = await (stockCollection.findOne({ id: id }) && orderCollection.findOne({ id: id }));
 
     if (existingStockId) {
       // If Stock Log with the same id already exists, send a 400 error response
-      res.status(400).json({ error: 'Stock Log with the same id already exists' });
+      res.status(400).json({ error: 'Stock or Order with the same id exists' });
     } else {
       await stockCollection.insertMany([stockData]);
       res.json({ status: true });
@@ -199,16 +244,20 @@ app.delete('/stock/delete/:id', async (req, res) => {
   }
 });
 
-// Calculate stock summary
-app.get('/stock/summary', async (req, res) => {
-  try {
-    const stockSummary = await stockCollection.aggregate([
-      { $group: { _id: '$type', totalQuantity: { $sum: '$quantity' }, totalPrice: { $sum: { $multiply: ['$quantity', '$price'] } } } }
-    ]);
-    res.json(stockSummary);
-  } catch (e) {
-    res.json('There is some error');
-  }
+// Handle the POST request to insert stock summary into the database
+app.post('/stock-summary', async (req, res) => {
+  await stockSummaryCollection.deleteMany({});
+  const summary = req.body;
+  // Insert the summary into the database
+  stockSummaryCollection.insertMany(summary)
+    .then(() => {
+      console.log('Summary inserted into the database');
+      res.sendStatus(200);
+    })
+    .catch((error) => {
+      console.log('Error inserting summary into the database:', error);
+      res.sendStatus(500);
+    });
 });
 
 // Fetch stock data

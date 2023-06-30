@@ -66,24 +66,29 @@ const stockSchema = new mongoose.Schema({
     },
 })
 
-// const stockSchema = new mongoose.Schema({
-//     type:{
-//         type:String,
-//         required: true
-//     },
-//     quantity:{
-//         type: Number,
-//         required: true
-//     }
-// })
+const stockSummarySchema = new mongoose.Schema({
+    type:{
+        type:String,
+        required: true
+    },
+    quantity:{
+        type: Number,
+        required: true
+    },
+    pricePerUnit:{
+        type: Number,
+        required: true
+    }
+})
 
 const userCollection = mongoose.model("users",userSchema);
 const orderCollection = mongoose.model("orders",orderSchema);
-// const stockLogCollection = mongoose.model("stock_logs",stockLogSchema);
+const stockSummaryCollection = mongoose.model("stock_summaries",stockSummarySchema);
 const stockCollection = mongoose.model("stocks", stockSchema)
 
 module.exports = {
     userCollection,
     orderCollection,
-    stockCollection
+    stockCollection,
+    stockSummaryCollection
   };

@@ -87,7 +87,12 @@ export default function Orders(props) {
       await axios.put(`http://localhost:5000/orders/convert/${orderId}`);
       fetchData();
     } catch (error) {
+      if (error.response && error.response.data.error) {
+        // Display an alert if duplicate id error
+        alert(error.response.data.error);
+      } else {
       console.log('Error marking order as completed:', error);
+      }
     }
   };
 

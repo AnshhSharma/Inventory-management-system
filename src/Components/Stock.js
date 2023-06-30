@@ -9,34 +9,33 @@ export default function Stock(props) {
   const [addingStock, setAddingStock] = useState(false)
   const [stockTypePrice, setStockTypePrice] = useState()
   const logTableHeading = ['ID', 'TYPE', 'QUANTITY', 'PRICE'];
-  const stockTableHeading = ['TYPE', 'QUANTITY'];
+  const stockTableHeading = ['TYPE', 'QUANTITY', 'PRICE PER UNIT'];
 
-  const handleStockTypeChange = ()=>{
+  const STOCK_TYPE_PRICE = [{ type: 'OPC', price: 1500 }, { type: 'PPC', price: 2500 }, { type: 'RAPID', price: 5000 }];
+  const getPriceByType = (type) => {
+    const foundStock = STOCK_TYPE_PRICE.find(stock => stock.type === type);
+    if (foundStock) {
+      return foundStock.price;
+    } else {
+      return null; // or any other default value if type is not found
+    }
+  };
+
+  const handleStockTypeChange = () => {
     const newStockType = document.getElementById('newStockType').value;
-    if(newStockType === 'OPC'){
-      setStockTypePrice(1500);
-    }
-    else if(newStockType === 'PPC'){
-      setStockTypePrice(2500);
-    }
-    else if(newStockType === 'RAPID'){
-      setStockTypePrice(5000);
-    }
-    else{
-      setStockTypePrice();
-    }
+    setStockTypePrice(getPriceByType(newStockType));
   }
-  
+
 
   useEffect(() => {
     fetchData();
     calculateStockSummary(stockLogs); // Calculate and set stock summary
-     // eslint-disable-next-line
-  },[]);
+    // eslint-disable-next-line
+  }, []);
 
   useEffect(() => {
     calculateStockSummary(stockLogs);
-     // eslint-disable-next-line
+    // eslint-disable-next-line
   }, [stockLogs]);
 
   const fetchData = async () => {
@@ -66,7 +65,7 @@ export default function Stock(props) {
         id: newStockId,
         type: newStockType,
         quantity: newStockQuantity,
-        price: stockTypePrice
+        price: stockTypePrice * newStockQuantity
       });
 
       if (response.data.status) {
@@ -95,11 +94,25 @@ export default function Stock(props) {
       }
       return acc;
     }, []);
-  
-    setStockSummary(summary);
+    // Add 'pricePerUnit' to each summary object
+    const summaryWithPrice = summary.map((item) => ({
+      ...item,
+      pricePerUnit: getPriceByType(item.type)
+    }));
+
+    // Send summary to backend
+    axios.post('http://localhost:5000/stock-summary', summaryWithPrice)
+      .then(response => {
+        console.log('Summary inserted into database:', response.data);
+      })
+      .catch(error => {
+        console.log('Error inserting summary into database:', error);
+      });
+
+    setStockSummary(summaryWithPrice);
     // console.log("Stock Summary: ", stockSummary);
   };
-  
+
 
 
 
@@ -125,7 +138,7 @@ export default function Stock(props) {
 
   return (
     <>
-      <div style={addingStock? {opacity: '0.5'}: {}}>
+      <div style={addingStock ? { opacity: '0.5' } : {}}>
         <Navbar name={props.name} />
         <h1 style={{ textAlign: 'center' }}>STOCKS</h1>
         <div className="d-flex justify-content-end">
@@ -140,7 +153,7 @@ export default function Stock(props) {
           </div>
           <div className="completed-orders mx-5 d-flex flex-column align-items-center" style={{ width: '40vw' }}>
             <h2 className="my-4">Total Stock</h2>
-            <StockTable tableOf='Overall' headings={stockTableHeading} data={stockSummary}/>
+            <StockTable tableOf='Overall' headings={stockTableHeading} data={stockSummary} />
           </div>
         </div>
       </div>
@@ -169,7 +182,7 @@ export default function Stock(props) {
         </div>
         <div className='my-1' style={{ width: '22rem' }}>
           <span className='mx-3' style={{ width: '5rem' }}>Enter Price</span>
-          <input type='number' style={{ width: '12rem', float: 'right' }} id='newStockPrice' disabled placeholder={stockTypePrice}/>
+          <input type='number' style={{ width: '12rem', float: 'right' }} id='newStockPrice' disabled placeholder={stockTypePrice} />
         </div>
         <button className="btn btn-primary m-5" onClick={addNewStock}>Add new order</button>
       </div>

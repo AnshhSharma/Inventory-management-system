@@ -56,7 +56,7 @@ export default function StockTable(props) {
                                                     <td>{element.type}</td>
                                                     <td>{element.quantity}</td>
 
-                                                    {props.tableOf === 'log' ? <td>{element.price}</td> : <></>}
+                                                    {props.tableOf === 'log' ? <td>{element.price}</td> : <td>{element.pricePerUnit}</td>}
                                                     {props.tableOf === 'log' ?
                                                         <td>
                                                             <ul className="action-list">
