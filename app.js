@@ -2,6 +2,7 @@ const express = require('express');
 const collection = require('./mongo');
 const cors = require('cors');
 const bcrypt = require('bcrypt');
+const PDFDocument = require('pdfkit');
 const { userCollection, orderCollection, stockCollection, stockSummaryCollection } = require('./mongo');
 const app = express();
 app.use(express.json());
@@ -267,7 +268,7 @@ app.delete('/stock/delete/:id', async (req, res) => {
         const updatedOrder = {
           id: stockLog.id,
           type: stockLog.type,
-          quantity: -1*stockLog.quantity,
+          quantity: -1 * stockLog.quantity,
           state: 'pending'
         }
         await orderCollection.deleteOne({ id: id });
@@ -315,6 +316,92 @@ app.get('/stock', async (req, res) => {
 });
 
 
+
+// downloading pending orders data in pdf form;
+app.get('/:document/download-pdf', async (req, res) => {
+  const document = req.params.document;
+  try {
+    let data;
+
+    if (document == 'pending-orders') {
+      data = await orderCollection.find({ state: 'pending' });
+    }
+    else if (document == 'completed-orders') {
+      data = await orderCollection.find({ state: 'completed' });
+    }
+    else if (document == 'stock-log') {
+      data = await stockCollection.find();
+    }
+    else if (document == 'stock') {
+      data = await stockSummaryCollection.find();
+    }
+    if (!data || data.length === 0) {
+      // Handle case when no data is found
+      return res.status(404).send('No data found');
+    }
+
+    const doc = new PDFDocument();
+    doc.pipe(res);
+
+    doc.text(`${document.toUpperCase()} REPORT`, { align: 'center', fontSize: 18, underline: true, marginBottom: 10 });
+    let docHeaders;
+    let columnWidths = [50, 100, 80, 80];
+    if (document == 'pending-orders' || document == 'completed-orders' ) {
+      docHeaders = ['ID', 'Type', 'Quantity', 'State'];
+    }
+    else if (document == 'stock-log') {
+      docHeaders = ['ID', 'Type', 'Quantity', 'Price'];
+    }
+    else if (document == 'stock') {
+      docHeaders = ['Type', 'Quantity', 'Price Per Unit'];
+      columnWidths = [100, 80, 80];
+    }
+    const table = {
+      headers: docHeaders,
+      rows: [],
+    };
+
+    // Populate the table rows with data
+    data.forEach((order) => {
+      if (document == 'pending-orders' || document == 'completed-orders' ){
+        table.rows.push([order.id.toString(), order.type, order.quantity.toString(), order.state]);
+      }
+    else if (document == 'stock-log') {
+      table.rows.push([order.id.toString(), order.type, order.quantity.toString(), order.price.toString()]);
+    }
+    else if (document == 'stock') {
+      table.rows.push([order.type, order.quantity.toString(), order.pricePerUnit.toString()]);
+    }
+    });
+
+    // Set the column widths
+
+    // Set the initial y-coordinate for the table
+    let y = doc.y + 40;
+    let X = doc.x + 60;
+    // Draw the table headers
+    table.headers.forEach((header, i) => {
+      doc.text(header, X + columnWidths.slice(0, i).reduce((sum, width) => sum + width, 0), y, { width: columnWidths[i], align: 'left' });
+    });
+
+    y += 20;
+
+    // Draw the table rows
+    table.rows.forEach((row) => {
+      let x = X // Reset the x-coordinate for each row
+      row.forEach((cell, i) => {
+        doc.text(cell, x, y, { width: columnWidths[i], align: 'left' });
+        x += columnWidths[i]; // Update the x-coordinate for the next cell
+      });
+      y += 20;
+    });
+
+    doc.end();
+  } catch (error) {
+    console.error(error);
+    res.status(500).send('Internal Server Error');
+  }
+});
 
 
 

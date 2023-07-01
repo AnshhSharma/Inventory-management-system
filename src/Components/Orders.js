@@ -3,7 +3,34 @@ import Navbar from './Navbar';
 import Table from './OrderTable';
 import axios from 'axios';
 
-export default function Orders(props) {
+
+
+  // Download file in pdf form
+  export async function handlePdfDownload(documentType){
+    try {
+      const response = await axios.get(`http://localhost:5000/${documentType}/download-pdf`, {
+        responseType: 'blob', // Set the response type to 'blob' for binary data
+      });
+  
+      // Create a blob URL for the response data
+      const blobUrl = URL.createObjectURL(response.data);
+  
+      // Create a temporary link and trigger the download
+      const link = document.createElement('a');
+      link.href = blobUrl;
+      link.download = 'database.pdf';
+      link.click();
+  
+      // Clean up the temporary blob URL
+      URL.revokeObjectURL(blobUrl);
+    } catch (error) {
+      console.error(error);
+    }
+  }
+
+
+
+function Orders(props) {
   // const [data, setData] = useState([]);
   const [pendingOrders, setPendingOrders] = useState([]);
   const [completedOrders, setCompletedOrders] = useState([]);
@@ -118,11 +145,11 @@ export default function Orders(props) {
         <div className="orders-container py-5 d-flex justify-content-center my-1" style={{ margin: '2rem', border: '2px solid black' }}>
           <div className="pending-orders mx-5 d-flex flex-column align-items-center" style={{ width: '40vw' }}>
             <h2 className="my-4">Pending Orders</h2>
-            <Table headings={tableHeadings} data={pendingOrders} onDelete={deleteOrder} onMarkAsCompleted={markAsCompleted} orderType="Pending" />
+            <Table headings={tableHeadings} data={pendingOrders} onDelete={deleteOrder} onMarkAsCompleted={markAsCompleted} orderType="Pending" onPdfDownload={() => handlePdfDownload('pending-orders')}/>
           </div>
           <div className="completed-orders mx-5 d-flex flex-column align-items-center" style={{ width: '40vw' }}>
             <h2 className="my-4">Completed Orders</h2>
-            <Table headings={tableHeadings} data={completedOrders} onDelete={deleteOrder} orderType="Completed" onMarkAsPending = {markAsPending}/>
+            <Table headings={tableHeadings} data={completedOrders} onDelete={deleteOrder} orderType="Completed" onMarkAsPending={markAsPending} onPdfDownload={() => handlePdfDownload('completed-orders')} />
           </div>
         </div>
       </div>
@@ -164,3 +191,5 @@ export default function Orders(props) {
     </>
   )
 }
+
+export default Orders;

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import Navbar from './Navbar';
 import StockTable from './StockTable';
 import axios from 'axios';
+import { handlePdfDownload } from './Orders';
 
 export default function Stock(props) {
   const [stockLogs, setStockLogs] = useState([]);
@@ -149,11 +150,11 @@ export default function Stock(props) {
         <div className="orders-container py-5 d-flex justify-content-center my-1" style={{ margin: '2rem', border: '2px solid black' }}>
           <div className="pending-orders mx-5 d-flex flex-column align-items-center" style={{ width: '40vw' }}>
             <h2 className="my-4">Stock Log</h2>
-            <StockTable tableOf='log' headings={logTableHeading} data={stockLogs} onDelete={deleteStockLog} />
+            <StockTable tableOf='log' headings={logTableHeading} data={stockLogs} onDelete={deleteStockLog} onPdfDownload = { ()=> handlePdfDownload('stock-log')}/>
           </div>
           <div className="completed-orders mx-5 d-flex flex-column align-items-center" style={{ width: '40vw' }}>
             <h2 className="my-4">Total Stock</h2>
-            <StockTable tableOf='Overall' headings={stockTableHeading} data={stockSummary} />
+            <StockTable tableOf='Overall' headings={stockTableHeading} data={stockSummary} onPdfDownload = { ()=> handlePdfDownload('stock')}/>
           </div>
         </div>
       </div>
