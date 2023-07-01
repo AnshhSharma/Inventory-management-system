@@ -30,7 +30,7 @@ export default function Table(props) {
                                             <button className="btn btn-default mx-2" title="Pdf" onClick={props.onPdfDownload}>
                                                 <i className="fa fa-file-pdf" />
                                             </button>
-                                            <button className="btn btn-default mx-2" title="Excel">
+                                            <button className="btn btn-default mx-2" title="Excel" onClick={props.onXlDownload}>
                                                 <i className="fas fa-file-excel" />
                                             </button>
                                         </div>

@@ -18,7 +18,7 @@ import axios from 'axios';
       // Create a temporary link and trigger the download
       const link = document.createElement('a');
       link.href = blobUrl;
-      link.download = 'database.pdf';
+      link.download = `${documentType}.pdf`;
       link.click();
   
       // Clean up the temporary blob URL
@@ -27,6 +27,33 @@ import axios from 'axios';
       console.error(error);
     }
   }
+
+  export async function handleXlDownload (collectionName){
+    try {
+      const response = await axios.get(`http://localhost:5000/${collectionName}/download-excel`, {
+        responseType: 'blob' // Set the response type to 'blob' to handle binary data
+      });
+
+      // Create a blob URL for the downloaded file
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+
+      // Create a link element
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `${collectionName}.xlsx`); // Set the file name
+
+      // Append the link to the body and click it programmatically
+      document.body.appendChild(link);
+      link.click();
+
+      // Clean up the blob URL and remove the link element
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(link);
+    } catch (error) {
+      console.error(error);
+      // Handle the error here
+    }
+  };
 
 
 
@@ -145,11 +172,11 @@ function Orders(props) {
         <div className="orders-container py-5 d-flex justify-content-center my-1" style={{ margin: '2rem', border: '2px solid black' }}>
           <div className="pending-orders mx-5 d-flex flex-column align-items-center" style={{ width: '40vw' }}>
             <h2 className="my-4">Pending Orders</h2>
-            <Table headings={tableHeadings} data={pendingOrders} onDelete={deleteOrder} onMarkAsCompleted={markAsCompleted} orderType="Pending" onPdfDownload={() => handlePdfDownload('pending-orders')}/>
+            <Table headings={tableHeadings} data={pendingOrders} onDelete={deleteOrder} onMarkAsCompleted={markAsCompleted} orderType="Pending" onPdfDownload={() => handlePdfDownload('pending-orders')} onXlDownload={()=> handleXlDownload('pending-orders')}/>
           </div>
           <div className="completed-orders mx-5 d-flex flex-column align-items-center" style={{ width: '40vw' }}>
             <h2 className="my-4">Completed Orders</h2>
-            <Table headings={tableHeadings} data={completedOrders} onDelete={deleteOrder} orderType="Completed" onMarkAsPending={markAsPending} onPdfDownload={() => handlePdfDownload('completed-orders')} />
+            <Table headings={tableHeadings} data={completedOrders} onDelete={deleteOrder} orderType="Completed" onMarkAsPending={markAsPending} onPdfDownload={() => handlePdfDownload('completed-orders')} onXlDownload={()=> handleXlDownload('completed-orders')}/>
           </div>
         </div>
       </div>

@@ -3,6 +3,7 @@ const collection = require('./mongo');
 const cors = require('cors');
 const bcrypt = require('bcrypt');
 const PDFDocument = require('pdfkit');
+const XLSX = require('xlsx');
 const { userCollection, orderCollection, stockCollection, stockSummaryCollection } = require('./mongo');
 const app = express();
 app.use(express.json());
@@ -143,10 +144,9 @@ app.put('/orders/convert/:id', async (req, res) => {
     const order = await orderCollection.findOne({ id: id });
     if (order) {
       // checking the available quantity for that stock in our inventory
-      const availableStock = await stockSummaryCollection.find({ type: order.type });
-      console.log(availableStock);
+      const availableStock = await stockSummaryCollection.findOne({ type: order.type });
       // if enough stock is available
-      if (availableStock && order.quantity <= availableStock[0].quantity) {
+      if (availableStock && order.quantity <= availableStock.quantity) {
         const updatedOrder = {
           id: order.id,
           type: order.type,
@@ -295,7 +295,7 @@ app.post('/stock-summary', async (req, res) => {
   // Insert the summary into the database
   stockSummaryCollection.insertMany(summary)
     .then(() => {
-      console.log('Summary inserted into the database');
+      // console.log('Summary inserted into the database');
       res.sendStatus(200);
     })
     .catch((error) => {
@@ -346,7 +346,7 @@ app.get('/:document/download-pdf', async (req, res) => {
     doc.text(`${document.toUpperCase()} REPORT`, { align: 'center', fontSize: 18, underline: true, marginBottom: 10 });
     let docHeaders;
     let columnWidths = [50, 100, 80, 80];
-    if (document == 'pending-orders' || document == 'completed-orders' ) {
+    if (document == 'pending-orders' || document == 'completed-orders') {
       docHeaders = ['ID', 'Type', 'Quantity', 'State'];
     }
     else if (document == 'stock-log') {
@@ -363,15 +363,15 @@ app.get('/:document/download-pdf', async (req, res) => {
 
     // Populate the table rows with data
     data.forEach((order) => {
-      if (document == 'pending-orders' || document == 'completed-orders' ){
+      if (document == 'pending-orders' || document == 'completed-orders') {
         table.rows.push([order.id.toString(), order.type, order.quantity.toString(), order.state]);
       }
-    else if (document == 'stock-log') {
-      table.rows.push([order.id.toString(), order.type, order.quantity.toString(), order.price.toString()]);
-    }
-    else if (document == 'stock') {
-      table.rows.push([order.type, order.quantity.toString(), order.pricePerUnit.toString()]);
-    }
+      else if (document == 'stock-log') {
+        table.rows.push([order.id.toString(), order.type, order.quantity.toString(), order.price.toString()]);
+      }
+      else if (document == 'stock') {
+        table.rows.push([order.type, order.quantity.toString(), order.pricePerUnit.toString()]);
+      }
     });
 
     // Set the column widths
@@ -402,6 +402,77 @@ app.get('/:document/download-pdf', async (req, res) => {
     res.status(500).send('Internal Server Error');
   }
 });
+
+
+// Downloading collection data in Excel format
+app.get('/:collectionName/download-excel', async (req, res) => {
+  const collectionName = req.params.collectionName;
+  try {
+    let data;
+
+    if (collectionName === 'pending-orders') {
+      data = await orderCollection.find({ state: 'pending' });
+    } else if (collectionName === 'completed-orders') {
+      data = await orderCollection.find({ state: 'completed' });
+    } else if (collectionName === 'stock-log') {
+      data = await stockCollection.find();
+    } else if (collectionName === 'stock') {
+      data = await stockSummaryCollection.find();
+    }
+
+    if (!data || data.length === 0) {
+      // Handle case when no data is found
+      return res.status(404).send('No data found');
+    }
+
+    // Map the data to the desired format
+    let mappedData;
+    if (collectionName == 'pending-orders' || collectionName == 'completed-orders') {
+        mappedData = data.map(item => ({
+        ID: item.id,
+        Product_TYPE: item.type,
+        Quantity: item.quantity,
+        State: item.state
+      }));
+    }
+    else if (collectionName == 'stock-log') {
+        mappedData = data.map(item => ({
+        ID: item.id,
+        Product_TYPE: item.type,
+        Quantity: item.quantity,
+        Price: item.price
+      }));
+    }
+    else if (collectionName == 'stock') {
+        mappedData = data.map(item => ({
+        Product_TYPE: item.type,
+        Quantity: item.quantity,
+        Price_Per_Unit: item.pricePerUnit
+      }));
+    }
+
+    // Create a new workbook and set up the worksheet
+    const workbook = XLSX.utils.book_new();
+    const worksheet = XLSX.utils.json_to_sheet(mappedData);
+
+    // Add the worksheet to the workbook
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Sheet1');
+
+    // Generate a buffer from the workbook
+    const excelBuffer = XLSX.write(workbook, { type: 'buffer', bookType: 'xlsx' });
+
+    // Set the response headers
+    res.setHeader('Content-Disposition', `attachment; filename=${collectionName}.xlsx`);
+    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+
+    // Send the Excel file as a response
+    res.send(excelBuffer);
+  } catch (error) {
+    console.error(error);
+    res.status(500).send('Internal Server Error');
+  }
+});
+
 
 
 
