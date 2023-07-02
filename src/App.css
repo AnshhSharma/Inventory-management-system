@@ -1,10 +1,30 @@
-.addOrder,.addStock{
-    border: 2px solid black;
-    width: 60vw;
-    height: 70vh;
-    position:absolute;
-    top: 20vh;
-    left: 22vw;
-    border-radius: 5px;
-    background-color: aliceblue;
+.addOrder,
+.addStock {
+  border: 2px solid black;
+  width: 60vw;
+  height: 70vh;
+  position: absolute;
+  top: 20vh;
+  left: 22vw;
+  border-radius: 5px;
+  background-color: aliceblue;
+}
+
+.dashboard {
+  background-color: azure;
+}
+.fa-brands {
+  display: inline-block;
+  padding: 10px;
+  color: rgb(0, 0, 0);
+  transition: all 0.3s ease 0s;
+  text-decoration: none;
+  cursor: pointer;
+}
+.fa-brands:hover{
+    color: #1369ce;
+}
+
+.home{
+  height: 91vh;
 }

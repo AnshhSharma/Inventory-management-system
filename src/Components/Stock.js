@@ -147,7 +147,7 @@ export default function Stock(props) {
             Add new Stock
           </button>
         </div>
-        <div className="orders-container py-5 d-flex justify-content-center my-1" style={{ margin: '2rem', border: '2px solid black' }}>
+        <div className="orders-container py-5 d-flex justify-content-center my-1" style={{ margin: '2rem', border: '2px solid black', borderRadius: '10px' }}>
           <div className="pending-orders mx-5 d-flex flex-column align-items-center" style={{ width: '40vw' }}>
             <h2 className="my-4">Stock Log</h2>
             <StockTable tableOf='log' headings={logTableHeading} data={stockLogs} onDelete={deleteStockLog} onPdfDownload = { ()=> handlePdfDownload('stock-log')} onXlDownload = {()=> handleXlDownload('stock-log')} />

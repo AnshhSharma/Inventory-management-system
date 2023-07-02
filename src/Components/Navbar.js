@@ -34,10 +34,14 @@ export default function Navbar(props) {
                                 height={50}
                                 alt="UT Logo"
                                 onClick={handleLogoClick}
+                                style={{cursor: 'pointer'}}
                             />
                         </div>
                         {/* Left links */}
                         <ul className="navbar-nav me-auto mb-2 mb-lg-0">
+                            <li className="nav-item">
+                                <span className="nav-link" style={{cursor: 'pointer'}} onClick={handleLogoClick}>Home</span>
+                            </li>
                             <li className="nav-item">
                                 <Link className="nav-link" to="/orders">Manage Orders</Link>
                             </li>

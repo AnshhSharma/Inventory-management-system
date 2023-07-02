@@ -122,7 +122,7 @@ app.post('/addorder', async (req, res) => {
           id: id,
           type: type,
           quantity: quantity * -1,
-          price: -1 * order.quantity * getPriceByType(order.type)
+          price: -1 * quantity * getPriceByType(type)
         }
         await stockCollection.insertMany([logOrder]);
       }
@@ -312,6 +312,17 @@ app.get('/stock', async (req, res) => {
     res.json(stockData);
   } catch (e) {
     res.json('There is some error');
+  }
+});
+
+// fetch Stock summary data
+app.get('/stockSummary', async (req, res) => {
+  try {
+    const stockSummary = await stockSummaryCollection.find();
+    res.json(stockSummary);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Internal Server Error' });
   }
 });
 

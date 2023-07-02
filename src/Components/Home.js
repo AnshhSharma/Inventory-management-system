@@ -12,6 +12,9 @@ export default function Home({ name, setName }) {
   return (
     <>
       <Navbar name={name} />
+      <div className="home">
+        
+      </div>
     </>
   );
 }

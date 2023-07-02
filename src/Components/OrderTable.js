@@ -24,9 +24,10 @@ export default function Table(props) {
                                                 placeholder="Search"
                                                 style={{ width: '50%' }}
                                             />
-                                            <button className="btn btn-default mx-2" title="Reload">
+                                            {/* <button className="btn btn-default mx-2" title="Reload">
                                                 <i className="fa fa-sync-alt" />
-                                            </button>
+                                            </button> */}
+                                            <span style={{color:'white'}}>Export To: </span>
                                             <button className="btn btn-default mx-2" title="Pdf" onClick={props.onPdfDownload}>
                                                 <i className="fa fa-file-pdf" />
                                             </button>

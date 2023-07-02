@@ -8,6 +8,7 @@ import Orders from './Components/Orders';
 import Stock from './Components/Stock';
 import Dashboard from './Components/Dashboard';
 import { useState } from 'react';
+import Footer from './Components/Footer';
 
 function App() {
   const [name, setName] = useState('')
@@ -23,7 +24,7 @@ function App() {
           <Route exact path='/dashboard' element = {<Dashboard name = {name}/>}/>
         </Routes>
       </Router>
-
+      <Footer companyName = {'UltraTech Cement'} name = {'Saanvi Gupta'} twitterUrl = {'https://twitter.com/ultratechcement'} instaUrl = {'https://www.instagram.com/ultratech.cement'} linkedinUrl = {'https://www.linkedin.com/company/ultratechcement'}/>
     </div>
   );
 }

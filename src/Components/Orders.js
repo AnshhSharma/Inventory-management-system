@@ -164,12 +164,12 @@ function Orders(props) {
       <div style={addingOrder? {opacity: '0.5'}: {}}>
         <Navbar name={props.name} />
         <h1 style={{ textAlign: 'center' }}>ORDERS</h1>
-        <div className="d-flex justify-content-end">
+        <div className="d-flex justify-content-end" >
           <button className="btn btn-primary mx-5" onClick={() => toggleNewOrder(true)}>
             Add new order
           </button>
         </div>
-        <div className="orders-container py-5 d-flex justify-content-center my-1" style={{ margin: '2rem', border: '2px solid black' }}>
+        <div className="orders-container py-5 d-flex justify-content-center my-1" style={{ margin: '2rem', border: '2px solid black', borderRadius: '10px' }}>
           <div className="pending-orders mx-5 d-flex flex-column align-items-center" style={{ width: '40vw' }}>
             <h2 className="my-4">Pending Orders</h2>
             <Table headings={tableHeadings} data={pendingOrders} onDelete={deleteOrder} onMarkAsCompleted={markAsCompleted} orderType="Pending" onPdfDownload={() => handlePdfDownload('pending-orders')} onXlDownload={()=> handleXlDownload('pending-orders')}/>
