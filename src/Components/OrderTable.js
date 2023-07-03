@@ -59,7 +59,7 @@ export default function Table(props) {
                                                         <ul className="action-list">
                                                             <li>
                                                                 <div style={{ cursor: 'pointer' }} title="edit">
-                                                                    <i className="fa fa-edit mx-2"  />
+                                                                    <i className="fa fa-edit mx-2" onClick={() => props.onModifyOrder(element.id)} />
                                                                 </div>
                                                             </li>
                                                             <li>

@@ -62,6 +62,7 @@ function Orders(props) {
   const [pendingOrders, setPendingOrders] = useState([]);
   const [completedOrders, setCompletedOrders] = useState([]);
   const [addingOrder, setAddingOrder] = useState(false);
+  const [modifyingOrder, setModifyingOrder] = useState(false);
   const tableHeadings = ["ID", "Type", "Quantity"];
 
   useEffect(() => {
@@ -113,6 +114,36 @@ function Orders(props) {
     }
   };
 
+  const handleModifyOrder = async()=>{
+    const newOrderId = document.getElementById('newOrderId').value;
+    const newOrderType = document.getElementById('newOrderType').value;
+    const newOrderQuantity = document.getElementById('newOrderQuantity').value;
+    if (!newOrderId || !newOrderType || !newOrderQuantity) {
+      alert('All fields are mandatory to fill');
+      return;
+    }
+
+    try {
+      const response = await axios.post('http://localhost:5000/modifyOrder', {
+        id: newOrderId,
+        type: newOrderType,
+        quantity: newOrderQuantity,
+      });
+
+      if (response.data.status) {
+        fetchData();
+        toggleModifyOrder();
+      }
+    } catch (error) {
+      if (error.response && error.response.data.error) {
+        // Display an alert if duplicate id error
+        alert(error.response.data.error);
+      } else {
+        console.log('Error modifying order:', error);
+      }
+    }
+  }
+
 
 
   const toggleNewOrder = () => {
@@ -120,8 +151,18 @@ function Orders(props) {
     if (!addingOrder) {
       setAddingOrder(true);
       element.classList.remove('d-none');
-    } else {
+    } else if(addingOrder) {
       setAddingOrder(false);
+      element.classList.add('d-none');
+    }
+  };
+  const toggleModifyOrder = () => {
+    const element = document.getElementById('addOrderContainer');
+    if (!modifyingOrder) {
+      setModifyingOrder(true);
+      element.classList.remove('d-none');
+    } else if(modifyingOrder) {
+      setModifyingOrder(false);
       element.classList.add('d-none');
     }
   };
@@ -161,22 +202,22 @@ function Orders(props) {
 
   return (
     <>
-      <div style={addingOrder? {opacity: '0.5'}: {}}>
+      <div style={addingOrder || modifyingOrder? {opacity: '0.5'}: {}}>
         <Navbar name={props.name} />
         <h1 style={{ textAlign: 'center' }}>ORDERS</h1>
         <div className="d-flex justify-content-end" >
-          <button className="btn btn-primary mx-5" onClick={() => toggleNewOrder(true)}>
+          <button className="btn btn-primary mx-5" onClick={() => toggleNewOrder()}>
             Add new order
           </button>
         </div>
         <div className="orders-container py-5 d-flex justify-content-center my-1" style={{ margin: '2rem', border: '2px solid black', borderRadius: '10px' }}>
           <div className="pending-orders mx-5 d-flex flex-column align-items-center" style={{ width: '40vw' }}>
             <h2 className="my-4">Pending Orders</h2>
-            <Table headings={tableHeadings} data={pendingOrders} onDelete={deleteOrder} onMarkAsCompleted={markAsCompleted} orderType="Pending" onPdfDownload={() => handlePdfDownload('pending-orders')} onXlDownload={()=> handleXlDownload('pending-orders')}/>
+            <Table headings={tableHeadings} data={pendingOrders} onDelete={deleteOrder} onMarkAsCompleted={markAsCompleted} orderType="Pending" onPdfDownload={() => handlePdfDownload('pending-orders')} onXlDownload={()=> handleXlDownload('pending-orders')} onModifyOrder = {() => toggleModifyOrder()}/>
           </div>
           <div className="completed-orders mx-5 d-flex flex-column align-items-center" style={{ width: '40vw' }}>
             <h2 className="my-4">Completed Orders</h2>
-            <Table headings={tableHeadings} data={completedOrders} onDelete={deleteOrder} orderType="Completed" onMarkAsPending={markAsPending} onPdfDownload={() => handlePdfDownload('completed-orders')} onXlDownload={()=> handleXlDownload('completed-orders')}/>
+            <Table headings={tableHeadings} data={completedOrders} onDelete={deleteOrder} orderType="Completed" onMarkAsPending={markAsPending} onPdfDownload={() => handlePdfDownload('completed-orders')} onXlDownload={()=> handleXlDownload('completed-orders')} onModifyOrder = {() => toggleModifyOrder()}/>
           </div>
         </div>
       </div>
@@ -185,9 +226,9 @@ function Orders(props) {
       {/* the below container will only be displayed when user wants to add new order. Logic are on function addNewOrder & toggleNewOrder */}
       <div className="addOrder d-flex d-none flex-column align-items-center" id='addOrderContainer'>
         <div className="d-flex justify-content-end fa-xl" style={{ cursor: 'pointer', width: '100%' }}>
-          <i className="fa-solid fa-rectangle-xmark" onClick={toggleNewOrder}></i>
+          <i className="fa-solid fa-rectangle-xmark" onClick={modifyingOrder? toggleModifyOrder : toggleNewOrder}></i>
         </div>
-        <h1 className='my-5'>ADD NEW ORDER</h1>
+        {modifyingOrder? <u><h1 className='my-5'>MODIFY ORDER</h1></u> : <u><h1 className='my-5'>ADD NEW ORDER</h1></u>}
         <div className='my-1' style={{ width: '22rem' }}>
           <span className='mx-3' style={{ width: '5rem' }}>Enter Order ID</span>
           <input type='number' style={{ width: '12rem', float: 'right' }} id='newOrderId' />
@@ -206,14 +247,20 @@ function Orders(props) {
           <input type='number' style={{ width: '12rem', float: 'right' }} id='newOrderQuantity' />
         </div>
         <div className='my-1' style={{ width: '22rem' }}>
-          <span className='mx-3' style={{ width: '5rem' }}>State of order</span>
+          {addingOrder? 
+          <><span className='mx-3' style={{ width: '5rem' }}>State of order</span>
           <select style={{ width: '12rem', float: 'right' }} id='newOrderState'>
             <option value={''}>Choose Order </option>
             <option value={'pending'}>Pending</option>
             <option value={'completed'}>Completed</option>
-          </select>
+          </select></>
+          :
+          <></>
+          }
+          
         </div>
-        <button className="btn btn-primary m-5" onClick={addNewOrder}>Add new order</button>
+        {modifyingOrder? <button className="btn btn-primary m-5" onClick={handleModifyOrder}>Modify order</button> : <button className="btn btn-primary m-5" onClick={addNewOrder}>Add new order</button>}
+        
       </div>
     </>
   )

@@ -122,7 +122,7 @@ app.post('/addorder', async (req, res) => {
           id: id,
           type: type,
           quantity: quantity * -1,
-          price: -1 * quantity * getPriceByType(type)
+          price: -1 * order.quantity * getPriceByType(order.type)
         }
         await stockCollection.insertMany([logOrder]);
       }
@@ -131,6 +131,87 @@ app.post('/addorder', async (req, res) => {
     }
   } catch (e) {
     res.json('There is some error');
+  }
+});
+
+
+// Modify an order
+app.post('/modifyOrder', async (req, res) => {
+  const { id, type, quantity } = req.body;
+
+  // Input validation
+  if (!id || !type || !quantity) {
+    return res.status(400).json({ error: 'All fields are mandatory to fill' });
+  }
+
+  try {
+
+    const data = await orderCollection.findOne({ id: id })
+    if (data) {
+      let response;
+
+      if (data.state === 'pending') {
+        response = await orderCollection.updateOne(
+          { id: id },
+          { $set: { type, quantity } }
+        );
+      }
+      else {
+        const availableStock = await stockSummaryCollection.findOne({ type: type });
+
+        if (data.type === type) {
+          if (availableStock && (availableStock.quantity + data.quantity) >= quantity) {
+            response = await orderCollection.updateOne(
+              { id: id },
+              { $set: { type, quantity } }
+            );
+            await stockSummaryCollection.updateOne(
+              { type: type },
+              { quantity: (availableStock.quantity + data.quantity - quantity) }
+            )
+            await stockCollection.updateOne({ id: id }, { type: type, quantity: (-1 * quantity), price: (-1 * getPriceByType(type) * quantity) });
+          }
+          else {
+            return res.status(404).json({ error: 'You can not increase quantity more than the available stock' });
+          }
+        }
+        else {
+          if (availableStock && availableStock.quantity >= quantity) {
+            // modifying Order Value
+            response = await orderCollection.updateOne(
+              { id: id },
+              { $set: { type, quantity } }
+            );
+
+            // Modify the Available stock quantity
+            await stockSummaryCollection.updateOne(
+              { type: type },
+              { quantity: (availableStock.quantity - parseInt(quantity)) }
+            );
+            const oldStock = await stockSummaryCollection.findOne({ type: data.type });
+            await stockSummaryCollection.updateOne(
+              { type: data.type },
+              { quantity: (oldStock.quantity + data.quantity) }
+            )
+            await stockCollection.updateOne({ id: id }, { type: type, quantity: (-1 * quantity), price: (-1 * getPriceByType(type) * parseInt(quantity)) });
+
+          }
+          else {
+            return res.status(404).json({ error: 'You can not increase quantity more than the available stock' });
+          }
+        }
+      }
+
+      if (response.modifiedCount === 1) {
+        return res.json({ status: 'Order modified successfully' });
+      }
+    }
+    else {
+      return res.status(404).json({ error: 'Order not found' });
+    }
+  } catch (error) {
+    console.log('Error modifying order:', error);
+    return res.status(500).json({ error: 'Internal server error' });
   }
 });
 
@@ -385,17 +466,15 @@ app.get('/:document/download-pdf', async (req, res) => {
       }
     });
 
-    // Set the column widths
-
     // Set the initial y-coordinate for the table
     let y = doc.y + 40;
     let X = doc.x + 60;
     // Draw the table headers
     table.headers.forEach((header, i) => {
-      doc.text(header, X + columnWidths.slice(0, i).reduce((sum, width) => sum + width, 0), y, { width: columnWidths[i], align: 'left' });
+      doc.text(header, X + columnWidths.slice(0, i).reduce((sum, width) => sum + width, 0), y, { width: columnWidths[i], align: 'left', fontFamily: 'Helvetica-Bold' });
     });
 
-    y += 20;
+    y += 40;
 
     // Draw the table rows
     table.rows.forEach((row) => {
@@ -439,7 +518,7 @@ app.get('/:collectionName/download-excel', async (req, res) => {
     // Map the data to the desired format
     let mappedData;
     if (collectionName == 'pending-orders' || collectionName == 'completed-orders') {
-        mappedData = data.map(item => ({
+      mappedData = data.map(item => ({
         ID: item.id,
         Product_TYPE: item.type,
         Quantity: item.quantity,
@@ -447,7 +526,7 @@ app.get('/:collectionName/download-excel', async (req, res) => {
       }));
     }
     else if (collectionName == 'stock-log') {
-        mappedData = data.map(item => ({
+      mappedData = data.map(item => ({
         ID: item.id,
         Product_TYPE: item.type,
         Quantity: item.quantity,
@@ -455,7 +534,7 @@ app.get('/:collectionName/download-excel', async (req, res) => {
       }));
     }
     else if (collectionName == 'stock') {
-        mappedData = data.map(item => ({
+      mappedData = data.map(item => ({
         Product_TYPE: item.type,
         Quantity: item.quantity,
         Price_Per_Unit: item.pricePerUnit
