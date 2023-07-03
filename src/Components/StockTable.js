@@ -63,12 +63,12 @@ export default function StockTable(props) {
                                                             <ul className="action-list">
                                                                 <li>
                                                                     <div style={{ cursor: 'pointer' }} title="edit">
-                                                                        <i className="fa fa-edit mx-2" />
+                                                                        <i className="fa fa-edit mx-2" onClick={props.onModifyStock()} />
                                                                     </div>
                                                                 </li>
                                                                 <li>
                                                                     <div style={{ cursor: 'pointer' }} title="delete">
-                                                                        <i className="fa fa-trash mx-2" onClick={() => { props.onDelete(element.id) }} />
+                                                                        <i className="fa fa-trash mx-2" onClick={() => { props.onDelete(element.id) }}  />
                                                                     </div>
                                                                 </li>
                                                             </ul>

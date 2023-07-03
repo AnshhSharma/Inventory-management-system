@@ -114,7 +114,7 @@ function Orders(props) {
     }
   };
 
-  const handleModifyOrder = async()=>{
+  const handleModifyOrder = async()=> {
     const newOrderId = document.getElementById('newOrderId').value;
     const newOrderType = document.getElementById('newOrderType').value;
     const newOrderQuantity = document.getElementById('newOrderQuantity').value;

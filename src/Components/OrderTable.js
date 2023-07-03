@@ -24,9 +24,6 @@ export default function Table(props) {
                                                 placeholder="Search"
                                                 style={{ width: '50%' }}
                                             />
-                                            {/* <button className="btn btn-default mx-2" title="Reload">
-                                                <i className="fa fa-sync-alt" />
-                                            </button> */}
                                             <span style={{color:'white'}}>Export To: </span>
                                             <button className="btn btn-default mx-2" title="Pdf" onClick={props.onPdfDownload}>
                                                 <i className="fa fa-file-pdf" />
@@ -59,7 +56,7 @@ export default function Table(props) {
                                                         <ul className="action-list">
                                                             <li>
                                                                 <div style={{ cursor: 'pointer' }} title="edit">
-                                                                    <i className="fa fa-edit mx-2" onClick={() => props.onModifyOrder(element.id)} />
+                                                                    <i className="fa fa-edit mx-2" onClick={() => props.onModifyOrder()} />
                                                                 </div>
                                                             </li>
                                                             <li>

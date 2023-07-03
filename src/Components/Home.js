@@ -6,14 +6,16 @@ export default function Home({ name, setName }) {
   const location = useLocation();
 
   useEffect(() => {
-    setName(location.state.id);
-  }, [location.state.id, setName]);
+    if (location.state && location.state.id) {
+      setName(location.state.id);
+    }
+  }, [location.state, setName]);
 
   return (
     <>
       <Navbar name={name} />
       <div className="home">
-        
+        {/* Home content */}
       </div>
     </>
   );

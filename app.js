@@ -337,6 +337,90 @@ app.post('/addstock', async (req, res) => {
   }
 });
 
+
+// Modify a stock entry
+app.post('/modifyStock', async (req, res) => {
+  const { id, type, quantity } = req.body;
+
+  // Input validation
+  if (!id || !type || !quantity) {
+    return res.status(400).json({ error: 'All fields are mandatory to fill' });
+  }
+
+  try {
+    const stockEntry = await stockCollection.findOne({ id: id });
+
+    if (stockEntry) {
+      const newFinalStock = await stockSummaryCollection.findOne({ type: type });
+      const originalFinalStock = await stockSummaryCollection.findOne({ type: stockEntry.type });
+      // console.log(originalFinalStock,newFinalStock,stockEntry);
+      const updatedStockEntry = {
+        type: type,
+        quantity: parseInt(quantity),
+        price: getPriceByType(type) * quantity
+      };
+
+      if (stockEntry.quantity < 0 && quantity < 0) {
+        if (stockEntry.type === type) {
+          console.log("Type same lelia babu");
+          console.log(originalFinalStock.quantity, (-1 * stockEntry.quantity), parseInt(quantity));
+          if ((originalFinalStock.quantity + (-1 * stockEntry.quantity) + parseInt(quantity)) < 0) {
+            return res.status(404).json({ error: 'can not withdraw available stock quantity more than it exist' });
+          }
+          else {
+            await orderCollection.updateMany({ id: id }, { quantity: (-1 * quantity) });
+          }
+        }
+        else {
+          if (parseInt(newFinalStock.quantity + parseInt(quantity)) < 0) {
+            return res.status(404).json({ error: 'can not withdraw available stock quantity more than it exist' });
+          }
+          else {
+            await orderCollection.updateMany({ id: id }, { quantity: -1 * quantity, type: type });
+          }
+        }
+      }
+
+      else if (stockEntry.quantity > 0 && quantity > 0) {
+        if (stockEntry.type === type) {
+          if (parseInt(originalFinalStock.quantity - stockEntry.quantity + parseInt(quantity)) < 0) {
+            return res.status(404).json({ error: 'can not make the quantity lesser than 0, as there are orders utilizing some stock' });
+          }
+        }
+        else {
+          if (parseInt(originalFinalStock.quantity - stockEntry.quantity) < 0) {
+            return res.status(404).json({ error: 'can not change type as quantity can not be lesser than 0, as there are orders utilizing some stock' });
+          }
+        }
+      }
+
+      else if (stockEntry.quantity > 0 && quantity < 0) {
+        return res.status(404).json({ error: 'You can not make a stock deposite entry as a withdraw entry' });
+      }
+
+      else if (stockEntry.quantity < 0 && quantity > 0) {
+        return res.status(404).json({ error: 'You can not make a stock withdraw entry as a deposite entry' });
+      }
+      else {
+        return res.status(404).json({ error: 'Quantity can not be 0' });
+      }
+
+      const response = await stockCollection.updateOne({ id: id }, updatedStockEntry);
+
+      if (response.modifiedCount === 1) {
+        return res.json({ status: 'Stock modified successfully' });
+      }
+    } else {
+      return res.status(404).json({ error: 'Stock entry not found' });
+    }
+  } catch (error) {
+    console.log('Error modifying stock:', error);
+    return res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+
+
 // Delete a stock log
 app.delete('/stock/delete/:id', async (req, res) => {
   const id = req.params.id;

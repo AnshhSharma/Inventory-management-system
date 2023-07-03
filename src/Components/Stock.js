@@ -8,6 +8,7 @@ export default function Stock(props) {
   const [stockLogs, setStockLogs] = useState([]);
   const [stockSummary, setStockSummary] = useState([]);
   const [addingStock, setAddingStock] = useState(false)
+  const [modifyingStock, setModifyingStock] = useState(false)
   const [stockTypePrice, setStockTypePrice] = useState()
   const logTableHeading = ['ID', 'TYPE', 'QUANTITY', 'PRICE'];
   const stockTableHeading = ['TYPE', 'QUANTITY', 'PRICE PER UNIT'];
@@ -83,6 +84,41 @@ export default function Stock(props) {
     }
   };
 
+
+  // Modify a stock entry
+  const modifyStock = async()=>{
+    const newStockId = document.getElementById('newStockId').value;
+    const newStockType = document.getElementById('newStockType').value;
+    const newStockQuantity = document.getElementById('newStockQuantity').value;
+
+    if (!newStockId || !newStockType || !newStockQuantity) {
+      alert('All fields are mandatory to fill');
+      return;
+    }
+
+    try {
+      const response = await axios.post('http://localhost:5000/modifyStock', {
+        id: newStockId,
+        type: newStockType,
+        quantity: newStockQuantity
+      });
+
+      if (response.data.status) {
+        fetchData();
+        toggleModifyStock();
+      }
+    } catch (error) {
+      if (error.response && error.response.data.error) {
+        // Display an alert if duplicate id error
+        alert(error.response.data.error);
+      } else {
+        console.log('Error modifying stock:', error);
+      }
+    }
+
+  }
+
+
   const calculateStockSummary = (stockData) => {
     // Group stock data by type and calculate total quantity
     const summary = stockData.reduce((acc, stock) => {
@@ -128,6 +164,18 @@ export default function Stock(props) {
     }
   };
 
+  const toggleModifyStock = ()=>{
+    const element = document.getElementById('addStockContainer');
+    if(!modifyingStock){
+      setModifyingStock(true);
+      element.classList.remove('d-none');
+    }
+    else{
+      setModifyingStock(false);
+      element.classList.add('d-none');
+    }
+  }
+
   const deleteStockLog = async (stockId) => {
     try {
       await axios.delete(`http://localhost:5000/stock/delete/${stockId}`);
@@ -139,7 +187,7 @@ export default function Stock(props) {
 
   return (
     <>
-      <div style={addingStock ? { opacity: '0.5' } : {}}>
+      <div style={addingStock || modifyingStock ? { opacity: '0.5' } : {}}>
         <Navbar name={props.name} />
         <h1 style={{ textAlign: 'center' }}>STOCKS</h1>
         <div className="d-flex justify-content-end">
@@ -150,7 +198,7 @@ export default function Stock(props) {
         <div className="orders-container py-5 d-flex justify-content-center my-1" style={{ margin: '2rem', border: '2px solid black', borderRadius: '10px' }}>
           <div className="pending-orders mx-5 d-flex flex-column align-items-center" style={{ width: '40vw' }}>
             <h2 className="my-4">Stock Log</h2>
-            <StockTable tableOf='log' headings={logTableHeading} data={stockLogs} onDelete={deleteStockLog} onPdfDownload = { ()=> handlePdfDownload('stock-log')} onXlDownload = {()=> handleXlDownload('stock-log')} />
+            <StockTable tableOf='log' headings={logTableHeading} data={stockLogs} onDelete={deleteStockLog} onPdfDownload = { ()=> handlePdfDownload('stock-log')} onXlDownload = {()=> handleXlDownload('stock-log')} onModifyStock = {()=>toggleModifyStock}/>
           </div>
           <div className="completed-orders mx-5 d-flex flex-column align-items-center" style={{ width: '40vw' }}>
             <h2 className="my-4">Total Stock</h2>
@@ -161,9 +209,9 @@ export default function Stock(props) {
       {/* the below container will only be displayed when user wants to add new Stock. Logic are on function addNewStock & toggleNewStock */}
       <div className="addStock d-flex d-none flex-column align-items-center" id='addStockContainer'>
         <div className="d-flex justify-content-end fa-xl" style={{ cursor: 'pointer', width: '100%' }}>
-          <i className="fa-solid fa-rectangle-xmark" onClick={toggleNewStock}></i>
+          <i className="fa-solid fa-rectangle-xmark" onClick={addingStock? toggleNewStock : toggleModifyStock}></i>
         </div>
-        <h1 className='my-5'>ADD NEW STOCK</h1>
+        {addingStock? <h1 className='my-5'>ADD NEW STOCK</h1> : <h1 className='my-5'>MODIFY STOCK</h1>}
         <div className='my-1' style={{ width: '22rem' }}>
           <span className='mx-3' style={{ width: '5rem' }}>Enter Stock ID</span>
           <input type='number' style={{ width: '12rem', float: 'right' }} id='newStockId' />
@@ -185,8 +233,12 @@ export default function Stock(props) {
           <span className='mx-3' style={{ width: '5rem' }}>Enter Price</span>
           <input type='number' style={{ width: '12rem', float: 'right' }} id='newStockPrice' disabled placeholder={stockTypePrice} />
         </div>
+        {addingStock? 
         <button className="btn btn-primary m-5" onClick={addNewStock}>Add new order</button>
-      </div>
+        :
+        <button className="btn btn-primary m-5" onClick={modifyStock}>Modify Stock</button>
+      }
+        </div>
     </>
   )
 }
