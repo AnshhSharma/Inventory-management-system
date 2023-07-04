@@ -204,7 +204,7 @@ function Orders(props) {
     <>
       <div style={addingOrder || modifyingOrder? {opacity: '0.5'}: {}}>
         <Navbar name={props.name} />
-        <h1 style={{ textAlign: 'center' }}>ORDERS</h1>
+        <h1 style={{ textAlign: 'center', marginTop: '10vh' }}>ORDERS</h1>
         <div className="d-flex justify-content-end" >
           <button className="btn btn-primary mx-5" onClick={() => toggleNewOrder()}>
             Add new order

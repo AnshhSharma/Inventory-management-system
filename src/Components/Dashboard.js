@@ -11,7 +11,7 @@ export default function Dashboard(props) {
   return (
     <div className='dashboard'>
       <Navbar name={props.name} />
-      <h1 className='m-4' style={{ textAlign: 'center' }}>DASHBOARD</h1>
+      <h1 className='mx-4' style={{ textAlign: 'center', marginTop: '9vh' }}>DASHBOARD</h1>
       <hr></hr>
       <div className = 'm-4 py-2' style={{ border: '1px solid black', textAlign: 'center' , borderRadius: '5px', backgroundColor: '#eff4f7'}}>
         <h2>Orders Stats.</h2>

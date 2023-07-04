@@ -4,7 +4,7 @@ const cors = require('cors');
 const bcrypt = require('bcrypt');
 const PDFDocument = require('pdfkit');
 const XLSX = require('xlsx');
-const { userCollection, orderCollection, stockCollection, stockSummaryCollection } = require('./mongo');
+const { userCollection, orderCollection, stockCollection, stockSummaryCollection, feedBackCollection } = require('./mongo');
 const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -648,6 +648,27 @@ app.get('/:collectionName/download-excel', async (req, res) => {
 });
 
 
+
+// Feedbacks
+app.post('/feedback', (req, res) => {
+  const {text, name}  = req.body;
+
+  // Create a new feedback entry
+  const newFeedback = new feedBackCollection({
+    name,
+    feedback:text
+  });
+
+  // Save the feedback entry to the database
+  newFeedback.save()
+    .then(() => {
+      res.status(200).json({ message: 'Feedback submitted successfully.' });
+    })
+    .catch((error) => {
+      console.error('Error submitting feedback:', error);
+      res.status(500).json({ error: 'An error occurred while saving the feedback.' });
+    });
+});
 
 
 app.listen(5000, () => {

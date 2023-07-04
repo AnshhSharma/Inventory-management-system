@@ -189,7 +189,7 @@ export default function Stock(props) {
     <>
       <div style={addingStock || modifyingStock ? { opacity: '0.5' } : {}}>
         <Navbar name={props.name} />
-        <h1 style={{ textAlign: 'center' }}>STOCKS</h1>
+        <h1 style={{ textAlign: 'center', marginTop: '10vh' }}>STOCKS</h1>
         <div className="d-flex justify-content-end">
           <button className="btn btn-primary mx-5" onClick={() => toggleNewStock(true)}>
             Add new Stock

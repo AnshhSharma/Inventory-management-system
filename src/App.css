@@ -10,8 +10,12 @@
   background-color: aliceblue;
 }
 
+.orders-container {
+  min-height: 76vh;
+}
+
 .dashboard {
-  background-color: azure;
+  background-color: #f8f9fa;
 }
 .fa-brands {
   display: inline-block;
@@ -21,10 +25,24 @@
   text-decoration: none;
   cursor: pointer;
 }
-.fa-brands:hover{
-    color: #1369ce;
+.fa-brands:hover {
+  color: #1369ce;
 }
 
-.home{
-  height: 91vh;
+.home {
+  margin-top: 10vh;
+  min-height: 90vh;
+}
+.home-card-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  /* border: 2px solid black; */
+}
+.home-card {
+  background-color: aliceblue;
+}
+
+.homeHeaders {
+  background-color: darkgray;
 }
