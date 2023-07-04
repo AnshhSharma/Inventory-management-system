@@ -122,7 +122,7 @@ app.post('/addorder', async (req, res) => {
           id: id,
           type: type,
           quantity: quantity * -1,
-          price: -1 * order.quantity * getPriceByType(order.type)
+          price: -1 * orderData.quantity * getPriceByType(orderData.type)
         }
         await stockCollection.insertMany([logOrder]);
       }
