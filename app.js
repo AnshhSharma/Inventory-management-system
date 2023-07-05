@@ -499,16 +499,16 @@ app.get('/:document/download-pdf', async (req, res) => {
   try {
     let data;
 
-    if (document == 'pending-orders') {
+    if (document === 'pending-orders') {
       data = await orderCollection.find({ state: 'pending' });
     }
-    else if (document == 'completed-orders') {
+    else if (document === 'completed-orders') {
       data = await orderCollection.find({ state: 'completed' });
     }
-    else if (document == 'stock-log') {
+    else if (document === 'stock-log') {
       data = await stockCollection.find();
     }
-    else if (document == 'stock') {
+    else if (document === 'stock') {
       data = await stockSummaryCollection.find();
     }
     if (!data || data.length === 0) {
@@ -522,13 +522,13 @@ app.get('/:document/download-pdf', async (req, res) => {
     doc.text(`${document.toUpperCase()} REPORT`, { align: 'center', fontSize: 18, underline: true, marginBottom: 10 });
     let docHeaders;
     let columnWidths = [50, 100, 80, 80];
-    if (document == 'pending-orders' || document == 'completed-orders') {
+    if (document === 'pending-orders' || document === 'completed-orders') {
       docHeaders = ['ID', 'Type', 'Quantity', 'State'];
     }
-    else if (document == 'stock-log') {
+    else if (document === 'stock-log') {
       docHeaders = ['ID', 'Type', 'Quantity', 'Price'];
     }
-    else if (document == 'stock') {
+    else if (document === 'stock') {
       docHeaders = ['Type', 'Quantity', 'Price Per Unit'];
       columnWidths = [100, 80, 80];
     }
@@ -539,13 +539,13 @@ app.get('/:document/download-pdf', async (req, res) => {
 
     // Populate the table rows with data
     data.forEach((order) => {
-      if (document == 'pending-orders' || document == 'completed-orders') {
+      if (document === 'pending-orders' || document === 'completed-orders') {
         table.rows.push([order.id.toString(), order.type, order.quantity.toString(), order.state]);
       }
-      else if (document == 'stock-log') {
+      else if (document === 'stock-log') {
         table.rows.push([order.id.toString(), order.type, order.quantity.toString(), order.price.toString()]);
       }
-      else if (document == 'stock') {
+      else if (document === 'stock') {
         table.rows.push([order.type, order.quantity.toString(), order.pricePerUnit.toString()]);
       }
     });
@@ -601,7 +601,7 @@ app.get('/:collectionName/download-excel', async (req, res) => {
 
     // Map the data to the desired format
     let mappedData;
-    if (collectionName == 'pending-orders' || collectionName == 'completed-orders') {
+    if (collectionName === 'pending-orders' || collectionName === 'completed-orders') {
       mappedData = data.map(item => ({
         ID: item.id,
         Product_TYPE: item.type,
@@ -609,7 +609,7 @@ app.get('/:collectionName/download-excel', async (req, res) => {
         State: item.state
       }));
     }
-    else if (collectionName == 'stock-log') {
+    else if (collectionName === 'stock-log') {
       mappedData = data.map(item => ({
         ID: item.id,
         Product_TYPE: item.type,
@@ -617,7 +617,7 @@ app.get('/:collectionName/download-excel', async (req, res) => {
         Price: item.price
       }));
     }
-    else if (collectionName == 'stock') {
+    else if (collectionName === 'stock') {
       mappedData = data.map(item => ({
         Product_TYPE: item.type,
         Quantity: item.quantity,
