@@ -1,5 +1,4 @@
 const express = require('express');
-const collection = require('./mongo');
 const cors = require('cors');
 const bcrypt = require('bcrypt');
 const PDFDocument = require('pdfkit');
@@ -442,8 +441,12 @@ app.delete('/stock/delete/:id', async (req, res) => {
         res.json({ status: true });
       }
       else {
-        await stockCollection.deleteOne({ id: id });
-        res.json({ status: true });
+        if ((await stockSummaryCollection.findOne({ type: type }).quantity - stockLog.quantity) > 0) {
+          await stockCollection.deleteOne({ id: id });
+          res.json({ status: true });
+        } else {
+          return res.json({ error: 'Cant delete stock as there are some orders utilizing some quantity of this stock' });
+        }
       }
     } else {
       res.json({ status: false });
@@ -651,12 +654,12 @@ app.get('/:collectionName/download-excel', async (req, res) => {
 
 // Feedbacks
 app.post('/feedback', (req, res) => {
-  const {text, name}  = req.body;
+  const { text, name } = req.body;
 
   // Create a new feedback entry
   const newFeedback = new feedBackCollection({
     name,
-    feedback:text
+    feedback: text
   });
 
   // Save the feedback entry to the database

@@ -140,7 +140,7 @@ export default function Stock(props) {
     // Send summary to backend
     axios.post('http://localhost:5000/stock-summary', summaryWithPrice)
       .then(response => {
-        console.log('Summary inserted into database:', response.data);
+        // console.log('Summary inserted into database:', response.data);
       })
       .catch(error => {
         console.log('Error inserting summary into database:', error);
@@ -182,8 +182,14 @@ export default function Stock(props) {
       fetchData();
     } catch (error) {
       console.log('Error deleting stock log:', error);
+      if (error.response && error.response.data && error.response.data.error) {
+        alert(error.response.data.error);
+      } else {
+        alert('An error occurred while deleting the stock log.');
+      }
     }
   };
+  
 
   return (
     <>
