@@ -14,6 +14,8 @@ function App() {
   const [name, setName] = useState('')
   return (
     <div className="App">
+      {/* // eslint-disable-next-line  */}
+      <marquee style={{position: 'absolute'}}>Project Made Under UltraTech Cement Ltd.</marquee>
       <Router>
         <Routes>
           <Route exact path='/' element = {<Login/>}/>
@@ -24,7 +26,7 @@ function App() {
           <Route exact path='/dashboard' element = {<Dashboard name = {name}/>}/>
         </Routes>
       </Router>
-      <Footer companyName = {'UltraTech Cement'} name = {'Saanvi Gupta'} twitterUrl = {'https://twitter.com/ultratechcement'} instaUrl = {'https://www.instagram.com/ultratech.cement'} linkedinUrl = {'https://www.linkedin.com/company/ultratechcement'}/>
+      <Footer companyName = {'UltraTech Cement'} name = {'Saanvi Gupta'} date = {'6th July 2023'}/>
     </div>
   );
 }

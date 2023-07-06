@@ -1,6 +1,7 @@
 import React from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import logo from '../Media/IMS LOGO.png'
 
 export default function Navbar(props) {
   const history = useNavigate();
@@ -28,9 +29,9 @@ export default function Navbar(props) {
           {/* Collapsible wrapper */}
           <div className="collapse navbar-collapse" id="navbarSupportedContent">
             {/* Navbar brand */}
-            <div className="navbar-bLand mt-2 mt-lg-0" style={{ marginRight: '10px' }}>
+            <div className="navbar-bLand mt-2 mt-lg-0" style={{ margin: '0 -40px' }}>
               <img
-                src="https://www.ultratechcement.com/content/dam/ultratechcementwebsite/new-header-design/desk.png"
+                src={logo}
                 height={50}
                 alt="UT Logo"
                 onClick={handleLogoClick}
