@@ -14,8 +14,6 @@ function App() {
   const [name, setName] = useState('')
   return (
     <div className="App">
-      {/* // eslint-disable-next-line  */}
-      <marquee style={{position: 'absolute'}}>Project Made Under UltraTech Cement Ltd.</marquee>
       <Router>
         <Routes>
           <Route exact path='/' element = {<Login/>}/>

@@ -441,7 +441,8 @@ app.delete('/stock/delete/:id', async (req, res) => {
         res.json({ status: true });
       }
       else {
-        if ((await stockSummaryCollection.findOne({ type: type }).quantity - stockLog.quantity) > 0) {
+        console.log(stockLog.type);
+        if (((await stockSummaryCollection.findOne({ type: stockLog.type })).quantity - stockLog.quantity) >= 0) {
           await stockCollection.deleteOne({ id: id });
           res.json({ status: true });
         } else {
@@ -496,7 +497,7 @@ app.get('/stockSummary', async (req, res) => {
 
 
 
-// downloading pending orders data in pdf form;
+// downloading orders data in pdf form;
 app.get('/:document/download-pdf', async (req, res) => {
   const document = req.params.document;
   try {
