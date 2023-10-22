@@ -45,7 +45,7 @@ export default function Login() {
                         >
                             <form action='POST' className="card-body p-5 text-center" style={{ height: '90vh' }}>
                                 <div className="mb-md-5 mt-md-4 pb-5">
-                                    <h2 className="fw mb-2 text-uppercase">UltraTech Cement</h2>
+                                    <h2 className="fw mb-2 text-uppercase">The Cement Company</h2>
                                     <h4 className="fw-bold mb-2 text-uppercase">Login</h4>
                                     <p className="text-white-50 mb-5">
                                         Please enter your Email and password!

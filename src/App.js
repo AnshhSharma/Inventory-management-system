@@ -24,7 +24,7 @@ function App() {
           <Route exact path='/dashboard' element = {<Dashboard name = {name}/>}/>
         </Routes>
       </Router>
-      <Footer companyName = {'UltraTech Cement'} name = {'Saanvi Gupta'} date = {'6th July 2023'}/>
+      <Footer companyName = {'My-Cement'} name = {'Ansh Sharma'} date = {'6th July 2023'}/>
     </div>
   );
 }

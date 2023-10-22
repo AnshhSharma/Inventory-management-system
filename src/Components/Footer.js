@@ -8,7 +8,7 @@ export default function Footer(props) {
                 className="text-center p-3 d-flex justify-content-around"
                 style={{ backgroundColor: "rgba(0, 0, 0, 0.2)" }}
             >
-                <span>Internship Project | {props.companyName} </span>
+                <span>Project | {props.companyName} </span>
                 <span> Inventory-Management-System | Developed By : {props.name}</span>
                 {/* <span> 
                     <a href={props.twitterUrl} className="fa-brands fa-twitter fa-lg mx-1" aria-hidden="true" target='_blank' rel="noreferrer"> </a>
